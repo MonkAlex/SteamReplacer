@@ -1,9 +1,5 @@
-﻿using System;
-using Steamworks;
-using System.Reflection;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
+﻿using Steamworks;
+using System;
 
 namespace SteamReplacer
 {
@@ -12,35 +8,24 @@ namespace SteamReplacer
     [STAThread]
     static void Main(string[] args)
     {
+      if (args.Length < 2)
+      {
+        Console.WriteLine("Run app with steam appid and game path. \r\n Example: 'SteamReplacer.exe 1200 C:\\Games\\SomeGame\\game.exe'");
+        return;
+      }
+
       var game = new Game(args);
       Environment.SetEnvironmentVariable("SteamAppId", game.AppId.ToString());
-
       if (SteamAPI.Init())
-        game.Run();
+      {
+        Console.WriteLine("User Name = '{0}', SteamID = '{1}'", SteamFriends.GetPersonaName(), SteamUser.GetSteamID());
+        if (!game.Run())
+          Console.WriteLine("Game already started or game file not found.");
+      }
+      else
+        Console.WriteLine("Steam not found. Run Steam and try again.");
     }
 
   }
 
-  internal class Game
-  {
-    internal long AppId { get; set; }
-
-    internal FileInfo FilePath { get; set; }
-
-    internal bool Exists { get { return this.FilePath.Exists; } }
-
-    internal DirectoryInfo WorkingDirectory { get { return this.FilePath.Directory; } }
-
-    internal void Run()
-    {
-      var processInfo = new ProcessStartInfo() { FileName = this.FilePath.FullName, WorkingDirectory = WorkingDirectory.FullName };
-      Process.Start(processInfo);
-    }
-
-    internal Game(string[] args)
-    {
-      this.AppId = long.Parse(args[0]);
-      this.FilePath = new FileInfo(args[1]);
-    }
-  }
 }
